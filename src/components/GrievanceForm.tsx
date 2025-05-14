@@ -4,44 +4,14 @@ import {
   TextField,
   Button,
   Typography,
-  Rating,
-  Paper,
   Container,
   MenuItem,
   Select,
   InputLabel,
   FormControl,
 } from '@mui/material';
-import SentimentVeryDissatisfiedIcon from '@mui/icons-material/SentimentVeryDissatisfied';
-import SentimentDissatisfiedIcon from '@mui/icons-material/SentimentDissatisfied';
-import SentimentSatisfiedIcon from '@mui/icons-material/SentimentSatisfied';
-import SentimentSatisfiedAltIcon from '@mui/icons-material/SentimentSatisfiedAlt';
-import SentimentVerySatisfiedIcon from '@mui/icons-material/SentimentVerySatisfied';
 import emailjs from 'emailjs-com';
 import type { Grievance } from '../types/grievance';
-
-const customIcons = {
-  1: {
-    icon: <span role="img" aria-label="angry"><SentimentVeryDissatisfiedIcon /></span>,
-    label: 'Very Angry',
-  },
-  2: {
-    icon: <span role="img" aria-label="dissatisfied"><SentimentDissatisfiedIcon /></span>,
-    label: 'Angry',
-  },
-  3: {
-    icon: <span role="img" aria-label="neutral"><SentimentSatisfiedIcon /></span>,
-    label: 'Neutral',
-  },
-  4: {
-    icon: <span role="img" aria-label="satisfied"><SentimentSatisfiedAltIcon /></span>,
-    label: 'Satisfied',
-  },
-  5: {
-    icon: <span role="img" aria-label="very satisfied"><SentimentVerySatisfiedIcon /></span>,
-    label: 'Very Satisfied',
-  },
-};
 
 const severityOptions = [
   'Anything with >70% Cocoa would fix this 😈',
