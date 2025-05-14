@@ -12,6 +12,8 @@ import {
 } from '@mui/material';
 import emailjs from 'emailjs-com';
 import type { Grievance } from '../types/grievance';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase';
 
 const severityOptions = [
   'Anything with >70% Cocoa would fix this 😈',
@@ -32,7 +34,7 @@ export const GrievanceForm: React.FC<GrievanceFormProps> = ({ onSubmit }) => {
   const [severity, setSeverity] = useState(severityOptions[0]);
   const [submitted, setSubmitted] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (complaint.trim() && rating && title.trim()) {
       onSubmit({
@@ -42,25 +44,32 @@ export const GrievanceForm: React.FC<GrievanceFormProps> = ({ onSubmit }) => {
 
       // EmailJS send
       emailjs.send(
-        'service_2y6tvrn',      // e.g., 'service_xxx'
-        'template_ag4fmym',     // e.g., 'template_xxx'
+        'service_2y6tvrn',
+        'template_ag4fmym',
         {
           title,
           complaint,
           rating,
           severity,
         },
-        'DlEF2eAs1UUxMVQYP'          // e.g., 'user_xxx' or 'public_xxx'
+        'DlEF2eAs1UUxMVQYP'
       ).then(
         (result) => {
-          // Optionally show a success message
           console.log('Email sent!', result.text);
         },
         (error) => {
-          // Optionally show an error message
           console.error('EmailJS error:', error.text);
         }
       );
+
+      await addDoc(collection(db, 'grievances'), {
+        title,
+        complaint,
+        rating,
+        severity,
+        status: 'pending',
+        createdAt: serverTimestamp(),
+      });
 
       setTitle('');
       setComplaint('');

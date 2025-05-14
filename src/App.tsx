@@ -3,39 +3,12 @@ import { BrowserRouter as Router, Routes, Route, Link } from 'react-router-dom'
 import { AppBar, Toolbar, Typography, Button, Container, CssBaseline, Dialog, DialogTitle, DialogContent, DialogActions, TextField } from '@mui/material'
 import { GrievanceForm } from './components/GrievanceForm'
 import { GrievanceList } from './components/GrievanceList'
-import type { Grievance } from './types/grievance'
 
 function App() {
-  const [grievances, setGrievances] = useState<Grievance[]>([])
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminDialogOpen, setAdminDialogOpen] = useState(false)
   const [adminPassword, setAdminPassword] = useState('')
   const [adminError, setAdminError] = useState('')
-
-  const handleSubmit = (newGrievance: Omit<Grievance, 'id' | 'status' | 'createdAt'>) => {
-    const grievance: Grievance = {
-      ...newGrievance,
-      id: crypto.randomUUID(),
-      status: 'pending',
-      createdAt: new Date().toISOString(),
-    }
-    setGrievances((prev) => [grievance, ...prev])
-  }
-
-  const handleResolve = (id: string) => {
-    setGrievances((prev) =>
-      prev.map((g) =>
-        g.id === id
-          ? {
-              ...g,
-              status: 'resolved',
-              resolvedAt: new Date().toISOString(),
-              resolution: 'Issue has been addressed and resolved.',
-            }
-          : g
-      )
-    )
-  }
 
   const openAdminDialog = () => {
     setAdminDialogOpen(true)
@@ -92,15 +65,13 @@ function App() {
         <Routes>
           <Route
             path="/"
-            element={<GrievanceForm onSubmit={handleSubmit} />}
+            element={<GrievanceForm onSubmit={() => {}} />}
           />
           <Route
             path="/history"
             element={
               <GrievanceList
-                grievances={grievances}
                 isAdmin={isAdmin}
-                onResolve={handleResolve}
               />
             }
           />

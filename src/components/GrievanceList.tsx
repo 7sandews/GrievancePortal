@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   List,
   ListItem,
@@ -8,20 +8,47 @@ import {
   Chip,
   Box,
   Rating,
+  Button,
 } from '@mui/material';
 import type { Grievance } from '../types/grievance';
+import { db } from '../firebase';
+import { collection, query, orderBy, onSnapshot, doc, updateDoc, serverTimestamp } from 'firebase/firestore';
 
 interface GrievanceListProps {
-  grievances: Grievance[];
   isAdmin?: boolean;
-  onResolve?: (id: string) => void;
 }
 
 export const GrievanceList: React.FC<GrievanceListProps> = ({
-  grievances,
   isAdmin = false,
-  onResolve,
 }) => {
+  const [grievances, setGrievances] = useState<Grievance[]>([]);
+
+  useEffect(() => {
+    const q = query(collection(db, 'grievances'), orderBy('createdAt', 'desc'));
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      setGrievances(
+        snapshot.docs.map(docSnap => ({ id: docSnap.id, ...docSnap.data() } as Grievance))
+      );
+    });
+    return unsubscribe;
+  }, []);
+
+  const handleResolve = async (id: string) => {
+    const grievanceRef = doc(db, 'grievances', id);
+    await updateDoc(grievanceRef, {
+      status: 'resolved',
+      resolvedAt: serverTimestamp(),
+      resolution: 'Issue has been addressed and resolved.',
+    });
+  };
+
+  const formatDate = (date: any) => {
+    if (!date) return '';
+    if (typeof date === 'string') return new Date(date).toLocaleString();
+    if (date.seconds) return new Date(date.seconds * 1000).toLocaleString();
+    return '';
+  };
+
   return (
     <Paper elevation={3} sx={{ p: 4, mt: 4 }}>
       <Typography variant="h4" component="h2" gutterBottom>
@@ -51,13 +78,13 @@ export const GrievanceList: React.FC<GrievanceListProps> = ({
               secondary={
                 <>
                   <Typography component="span" variant="body2" color="text.primary">
-                    Submitted: {new Date(grievance.createdAt).toLocaleString()}
+                    Submitted: {formatDate(grievance.createdAt)}
                   </Typography>
                   {grievance.resolvedAt && (
                     <>
                       <br />
                       <Typography component="span" variant="body2" color="text.primary">
-                        Resolved: {new Date(grievance.resolvedAt).toLocaleString()}
+                        Resolved: {formatDate(grievance.resolvedAt)}
                       </Typography>
                     </>
                   )}
@@ -72,14 +99,15 @@ export const GrievanceList: React.FC<GrievanceListProps> = ({
                 </>
               }
             />
-            {isAdmin && grievance.status === 'pending' && onResolve && (
+            {isAdmin && grievance.status === 'pending' && (
               <Box sx={{ mt: 2 }}>
-                <Chip
-                  label="Resolve"
+                <Button
+                  variant="contained"
                   color="primary"
-                  onClick={() => onResolve(grievance.id)}
-                  clickable
-                />
+                  onClick={() => handleResolve(grievance.id)}
+                >
+                  Resolve
+                </Button>
               </Box>
             )}
           </ListItem>
