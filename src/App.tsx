@@ -4,6 +4,8 @@ import { AppBar, Toolbar, Typography, Button, Container, CssBaseline, Dialog, Di
 import { GrievanceForm } from './components/GrievanceForm'
 import { GrievanceList } from './components/GrievanceList'
 
+const REPO_NAME = 'GrievancePortal';
+
 function App() {
   const [isAdmin, setIsAdmin] = useState(false)
   const [adminDialogOpen, setAdminDialogOpen] = useState(false)
@@ -36,7 +38,7 @@ function App() {
   }
 
   return (
-    <Router>
+    <Router basename={`/${REPO_NAME}`}>
       <CssBaseline />
       <AppBar position="static">
         <Toolbar>
