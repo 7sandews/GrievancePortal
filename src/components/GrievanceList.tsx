@@ -9,6 +9,11 @@ import {
   Box,
   Rating,
   Button,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from '@mui/material';
 import type { Grievance } from '../types/grievance';
 import { db } from '../firebase';
@@ -22,6 +27,9 @@ export const GrievanceList: React.FC<GrievanceListProps> = ({
   isAdmin = false,
 }) => {
   const [grievances, setGrievances] = useState<Grievance[]>([]);
+  const [resolveDialogOpen, setResolveDialogOpen] = useState(false);
+  const [resolveComment, setResolveComment] = useState('');
+  const [resolvingId, setResolvingId] = useState<string | null>(null);
 
   useEffect(() => {
     const q = query(collection(db, 'grievances'), orderBy('createdAt', 'desc'));
@@ -33,13 +41,27 @@ export const GrievanceList: React.FC<GrievanceListProps> = ({
     return unsubscribe;
   }, []);
 
-  const handleResolve = async (id: string) => {
-    const grievanceRef = doc(db, 'grievances', id);
+  const openResolveDialog = (id: string) => {
+    setResolvingId(id);
+    setResolveComment('');
+    setResolveDialogOpen(true);
+  };
+
+  const closeResolveDialog = () => {
+    setResolvingId(null);
+    setResolveComment('');
+    setResolveDialogOpen(false);
+  };
+
+  const handleResolve = async () => {
+    if (!resolvingId) return;
+    const grievanceRef = doc(db, 'grievances', resolvingId);
     await updateDoc(grievanceRef, {
       status: 'resolved',
       resolvedAt: serverTimestamp(),
-      resolution: 'Issue has been addressed and resolved.',
+      resolution: resolveComment || 'Issue has been addressed and resolved.',
     });
+    closeResolveDialog();
   };
 
   const formatDate = (date: any) => {
@@ -104,7 +126,7 @@ export const GrievanceList: React.FC<GrievanceListProps> = ({
                 <Button
                   variant="contained"
                   color="primary"
-                  onClick={() => handleResolve(grievance.id)}
+                  onClick={() => openResolveDialog(grievance.id)}
                 >
                   Resolve
                 </Button>
@@ -113,6 +135,28 @@ export const GrievanceList: React.FC<GrievanceListProps> = ({
           </ListItem>
         ))}
       </List>
+      <Dialog open={resolveDialogOpen} onClose={closeResolveDialog}>
+        <DialogTitle>Resolve Grievance</DialogTitle>
+        <DialogContent>
+          <TextField
+            label="Resolution Comment"
+            value={resolveComment}
+            onChange={e => setResolveComment(e.target.value)}
+            fullWidth
+            multiline
+            minRows={2}
+            autoFocus
+            sx={{ mt: 1 }}
+            placeholder="Add a comment about the resolution..."
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={closeResolveDialog}>Cancel</Button>
+          <Button onClick={handleResolve} variant="contained" disabled={!resolveComment.trim()}>
+            Resolve
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Paper>
   );
 }; 
